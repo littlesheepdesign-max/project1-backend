@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 
 // Use dynamic import pattern so this works nicely on some hosts
 const fetch = (...args) =>
@@ -24,13 +23,8 @@ app.use(
 // 2) (Optional) JSON body parsing if needed in future
 app.use(express.json());
 
-// 3) Serve static files locally ONLY (won’t be used by GitHub Pages, but fine for dev)
-app.use(express.static('public'));
-
-// Root route for local testing
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// NOTE: We removed static serving and the root route, because
+// HTML/CSS/JS are hosted on GitHub Pages, not this backend.
 
 // 4) Proxy endpoint to handle API requests to FPL: bootstrap-static
 app.get('/api/data', async (req, res) => {
@@ -38,8 +32,14 @@ app.get('/api/data', async (req, res) => {
     const response = await fetch(`${FPL_BASE}/bootstrap-static/`);
 
     if (!response.ok) {
-      console.error('Error from FPL bootstrap API:', response.status, response.statusText);
-      return res.status(500).json({ error: 'Failed to fetch data from FPL API' });
+      console.error(
+        'Error from FPL bootstrap API:',
+        response.status,
+        response.statusText
+      );
+      return res
+        .status(500)
+        .json({ error: 'Failed to fetch data from FPL API' });
     }
 
     const data = await response.json();
@@ -58,8 +58,14 @@ app.get('/api/live/:gw', async (req, res) => {
     const response = await fetch(`${FPL_BASE}/event/${gw}/live/`);
 
     if (!response.ok) {
-      console.error('Error from FPL live API:', response.status, response.statusText);
-      return res.status(500).json({ error: 'Failed to fetch live data from FPL API' });
+      console.error(
+        'Error from FPL live API:',
+        response.status,
+        response.statusText
+      );
+      return res
+        .status(500)
+        .json({ error: 'Failed to fetch live data from FPL API' });
     }
 
     const data = await response.json();
@@ -72,5 +78,5 @@ app.get('/api/live/:gw', async (req, res) => {
 
 // 6) Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
